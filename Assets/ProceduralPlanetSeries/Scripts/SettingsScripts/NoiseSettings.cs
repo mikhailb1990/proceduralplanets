@@ -8,9 +8,9 @@ public class NoiseSettings
     [Range(1, 8)]
     public int numLayers = 1;
     public float persistence = 0.5f;
-    public float strength = 1f;
-    public float baseRoughness = 1f;
-    public float roughness = 2f;
+    public float strength = 1;
+    public float baseRoughness = 1;
+    public float roughness = 2;
     public Vector3 center;
     public float minValue;
 }
