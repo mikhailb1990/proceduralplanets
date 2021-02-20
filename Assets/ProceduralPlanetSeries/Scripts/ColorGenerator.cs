@@ -12,9 +12,9 @@ public class ColorGenerator
     {
         this.settings = settings;
 
-        if (texture == null)
+        if (texture == null || texture.height != settings.biomeColorSettings.biomes.Length)
         {
-            texture = new Texture2D(textureResolution, 1);
+            texture = new Texture2D(textureResolution, settings.biomeColorSettings.biomes.Length);
         }
     }
 
@@ -23,12 +23,41 @@ public class ColorGenerator
         settings.planetMaterial.SetVector("_elevationMinMax", new Vector4(elevationMinMax.Min, elevationMinMax.Max, 0f, 0f));
     }
 
+    public float BiomePercentFromPoint(Vector3 pointOnUnitSphere)
+    {
+        float heightPercent = (pointOnUnitSphere.y + 1) / 2f;
+        float biomeIndex = 0;
+        int numBiomes = settings.biomeColorSettings.biomes.Length;
+
+        for (int i = 0; i < numBiomes; i++)
+        {
+            if (settings.biomeColorSettings.biomes[i].startHeight < heightPercent)
+            {
+                biomeIndex = i;
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return biomeIndex / Mathf.Max(1, numBiomes - 1);
+    }
+
     public void UpdateColors()
     {
-        Color[] colors = new Color[textureResolution];
-        for (int i = 0; i < textureResolution; i++)
+        Color[] colors = new Color[texture.width * texture.height];
+        int colorIndex = 0;
+
+        foreach (var biome in settings.biomeColorSettings.biomes)
         {
-            colors[i] = settings.gradient.Evaluate(i / (textureResolution - 1f));
+            for (int i = 0; i < textureResolution; i++)
+            {
+                Color gradientCol = biome.gradient.Evaluate(i / (textureResolution - 1f));
+                Color tintCol = biome.tint;
+                colors[colorIndex] = gradientCol * (1 - biome.tintPercent) + tintCol * biome.tintPercent;
+                colorIndex++;
+            }
         }
 
         texture.SetPixels(colors);
