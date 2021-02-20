@@ -6,7 +6,8 @@ public class ColorGenerator
 {
     ColorSettings settings;
     Texture2D texture;
-    const int textureResolution = 50;
+    const int textureResolution = 100;
+    INoiseFilter biomeNoiseFilter;
 
     public void UpdateSettings(ColorSettings settings)
     {
@@ -14,8 +15,9 @@ public class ColorGenerator
 
         if (texture == null || texture.height != settings.biomeColorSettings.biomes.Length)
         {
-            texture = new Texture2D(textureResolution, settings.biomeColorSettings.biomes.Length);
+            texture = new Texture2D(textureResolution, settings.biomeColorSettings.biomes.Length, TextureFormat.RGBA32, false);
         }
+        biomeNoiseFilter = NoiseFilterFactory.CreateNoiseFilter(settings.biomeColorSettings.noise);
     }
 
     public void UpdateElevation(MinMax elevationMinMax)
@@ -25,20 +27,18 @@ public class ColorGenerator
 
     public float BiomePercentFromPoint(Vector3 pointOnUnitSphere)
     {
-        float heightPercent = (pointOnUnitSphere.y + 1) / 2f;
+        float heightPercent = (pointOnUnitSphere.y + 1) / 2f + 0.001f;
+        heightPercent += (biomeNoiseFilter.Evaluate(pointOnUnitSphere) - settings.biomeColorSettings.noiseOffset) * settings.biomeColorSettings.noiseStrength;
         float biomeIndex = 0;
         int numBiomes = settings.biomeColorSettings.biomes.Length;
+        float blendRange = settings.biomeColorSettings.blendAmount/2f;
 
         for (int i = 0; i < numBiomes; i++)
         {
-            if (settings.biomeColorSettings.biomes[i].startHeight < heightPercent)
-            {
-                biomeIndex = i;
-            }
-            else
-            {
-                break;
-            }
+            float distance = heightPercent - settings.biomeColorSettings.biomes[i].startHeight;
+            float weight = Mathf.InverseLerp(-blendRange, blendRange, distance);
+            biomeIndex *= (1 - weight);
+            biomeIndex += i * weight;
         }
 
         return biomeIndex / Mathf.Max(1, numBiomes - 1);
