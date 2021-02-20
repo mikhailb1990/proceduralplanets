@@ -24,13 +24,13 @@ public class Planet : MonoBehaviour
     private MeshFilter[] meshFilters;
     private TerrainFace[] terrainFaces;
 
-    private ShapeGenerator shapeGenerator;
-    private ColorGenerator colorGenerator;
+    private ShapeGenerator shapeGenerator = new ShapeGenerator();
+    private ColorGenerator colorGenerator = new ColorGenerator();
 
     private void Initialize()
     {
-        shapeGenerator = new ShapeGenerator(shapeSettings);
-        colorGenerator = new ColorGenerator(colorSettings);
+        shapeGenerator.UpdateSettings(shapeSettings);
+        colorGenerator.UpdateSettings(colorSettings);
 
         if (meshFilters == null || meshFilters.Length == 0)
         {
@@ -76,16 +76,13 @@ public class Planet : MonoBehaviour
                 terrainFaces[i].ConstructMesh();
             }
         }
+
+        colorGenerator.UpdateElevation(shapeGenerator.elevationMinMax);
     }
 
     private void GenerateColors()
     {
-        foreach (MeshFilter m in meshFilters)
-        {
-            m.GetComponent<MeshRenderer>().sharedMaterial.color = colorSettings.planetColor;
-        }
-
-        colorGenerator.UpdateElevation(shapeGenerator.elevationMinMax);
+        colorGenerator.UpdateColors();
     }
 
     public void OnColorSettingsUpdated()
