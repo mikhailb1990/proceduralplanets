@@ -11,7 +11,11 @@ public class ColorGenerator
     public void UpdateSettings(ColorSettings settings)
     {
         this.settings = settings;
-        texture = new Texture2D(textureResolution, 1);
+
+        if (texture == null)
+        {
+            texture = new Texture2D(textureResolution, 1);
+        }
     }
 
     public void UpdateElevation(MinMax elevationMinMax)
