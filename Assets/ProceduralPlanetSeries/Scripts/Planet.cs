@@ -25,10 +25,12 @@ public class Planet : MonoBehaviour
     private TerrainFace[] terrainFaces;
 
     private ShapeGenerator shapeGenerator;
+    private ColorGenerator colorGenerator;
 
     private void Initialize()
     {
         shapeGenerator = new ShapeGenerator(shapeSettings);
+        colorGenerator = new ColorGenerator(colorSettings);
 
         if (meshFilters == null || meshFilters.Length == 0)
         {
@@ -46,10 +48,11 @@ public class Planet : MonoBehaviour
                 GameObject meshObj = new GameObject("mesh");
                 meshObj.transform.parent = transform;
 
-                meshObj.AddComponent<MeshRenderer>().sharedMaterial = new Material(Shader.Find("Standard"));
+                meshObj.AddComponent<MeshRenderer>();
                 meshFilters[i] = meshObj.AddComponent<MeshFilter>();
                 meshFilters[i].sharedMesh = new Mesh();
             }
+            meshFilters[i].GetComponent<MeshRenderer>().sharedMaterial = colorSettings.planetMaterial;
 
             terrainFaces[i] = new TerrainFace(shapeGenerator, meshFilters[i].sharedMesh, resolution, directions[i]);
             bool renderFace = faceRenderMask == FaceRenderMask.All || (int)faceRenderMask - 1 == i;
@@ -81,6 +84,8 @@ public class Planet : MonoBehaviour
         {
             m.GetComponent<MeshRenderer>().sharedMaterial.color = colorSettings.planetColor;
         }
+
+        colorGenerator.UpdateElevation(shapeGenerator.elevationMinMax);
     }
 
     public void OnColorSettingsUpdated()
